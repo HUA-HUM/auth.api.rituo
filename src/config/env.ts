@@ -17,4 +17,5 @@ export const env = {
   jwtAccessTtl: process.env.JWT_ACCESS_TTL ?? '15m',
   jwtRefreshTtl: process.env.JWT_REFRESH_TTL ?? '30d',
   appleClientId: required('APPLE_CLIENT_ID'),
+  googleClientId: required('GOOGLE_CLIENT_ID'),
 };
