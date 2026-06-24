@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import {
@@ -30,7 +30,7 @@ export class SQLUsersRepository implements IUsersRepository {
     const rows = await this.queryRows<UserRow>(
       `
         select
-          id,
+          id::text as "id",
           email,
           display_name as "displayName",
           email_verified as "emailVerified",
@@ -53,7 +53,7 @@ export class SQLUsersRepository implements IUsersRepository {
     const rows = await this.queryRows<UserRow>(
       `
         select
-          id,
+          id::text as "id",
           email,
           display_name as "displayName",
           email_verified as "emailVerified",
@@ -81,7 +81,7 @@ export class SQLUsersRepository implements IUsersRepository {
         )
         values ($1, $2, $3)
         returning
-          id,
+          id::text as "id",
           email,
           display_name as "displayName",
           email_verified as "emailVerified",
@@ -107,7 +107,7 @@ export class SQLUsersRepository implements IUsersRepository {
           updated_at = now()
         where id = $1
         returning
-          id,
+          id::text as "id",
           email,
           display_name as "displayName",
           email_verified as "emailVerified",
@@ -121,7 +121,11 @@ export class SQLUsersRepository implements IUsersRepository {
     return this.mapRowToUser(rows[0]);
   }
 
-  private mapRowToUser(row: UserRow): User {
+  private mapRowToUser(row: UserRow | undefined): User {
+    if (!row?.id) {
+      throw new InternalServerErrorException('User row was returned without id');
+    }
+
     return {
       id: row.id,
       email: row.email,

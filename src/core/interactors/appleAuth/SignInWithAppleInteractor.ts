@@ -95,6 +95,8 @@ export class SignInWithAppleInteractor {
         });
       }
 
+      this.assertPersistedUser(user, 'before_apple_identity_create');
+
       await this.authIdentitiesRepository.create({
         userId: user.id,
         provider: 'apple',
@@ -114,6 +116,8 @@ export class SignInWithAppleInteractor {
     if (user.status !== 'active') {
       throw new UnauthorizedException('User is disabled');
     }
+
+    this.assertPersistedUser(user, 'before_apple_session_create');
 
     const expiresAt = new Date(
       Date.now() + ttlToMilliseconds(env.jwtRefreshTtl),
@@ -183,5 +187,17 @@ export class SignInWithAppleInteractor {
   private normalizeDisplayName(displayName: string | null): string | null {
     const normalizedDisplayName = displayName?.trim().replace(/\s+/g, ' ');
     return normalizedDisplayName || null;
+  }
+
+  private assertPersistedUser(user: User, step: string): void {
+    if (!user.id) {
+      this.logger.error({
+        event: 'invalid_user_without_id',
+        provider: 'apple',
+        step,
+        email: user.email,
+      });
+      throw new UnauthorizedException('Authenticated user was not persisted');
+    }
   }
 }

@@ -93,6 +93,8 @@ export class SignInWithGoogleInteractor {
         });
       }
 
+      this.assertPersistedUser(user, 'before_google_identity_create');
+
       await this.authIdentitiesRepository.create({
         userId: user.id,
         provider: 'google',
@@ -112,6 +114,8 @@ export class SignInWithGoogleInteractor {
     if (user.status !== 'active') {
       throw new UnauthorizedException('User is disabled');
     }
+
+    this.assertPersistedUser(user, 'before_google_session_create');
 
     const expiresAt = new Date(
       Date.now() + ttlToMilliseconds(env.jwtRefreshTtl),
@@ -181,5 +185,17 @@ export class SignInWithGoogleInteractor {
   private normalizeDisplayName(displayName: string | null): string | null {
     const normalizedDisplayName = displayName?.trim().replace(/\s+/g, ' ');
     return normalizedDisplayName || null;
+  }
+
+  private assertPersistedUser(user: User, step: string): void {
+    if (!user.id) {
+      this.logger.error({
+        event: 'invalid_user_without_id',
+        provider: 'google',
+        step,
+        email: user.email,
+      });
+      throw new UnauthorizedException('Authenticated user was not persisted');
+    }
   }
 }
