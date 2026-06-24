@@ -27,6 +27,7 @@ export interface SignInWithAppleCommand {
   deviceId: string;
   authorizationCode?: string | null;
   deviceLabel?: string | null;
+  displayName?: string | null;
   userAgent?: string | null;
   ipAddress?: string | null;
 }
@@ -63,19 +64,36 @@ export class SignInWithAppleInteractor {
 
     let user: User | null;
     let isNewUser = false;
+    const displayName = this.normalizeDisplayName(command.displayName ?? null);
 
     if (existingIdentity) {
       user = await this.usersRepository.findById(existingIdentity.userId);
       if (!user) {
         throw new UnauthorizedException('Apple identity user was not found');
       }
+      if (!user.displayName && displayName) {
+        user = await this.usersRepository.updateProfile(user.id, {
+          displayName,
+        });
+      }
     } else {
-      user = await this.usersRepository.create({
-        email: appleIdentity.email,
-        displayName: null,
-        emailVerified: appleIdentity.emailVerified,
-      });
-      isNewUser = true;
+      user = await this.findExistingVerifiedEmailUser(
+        appleIdentity.email,
+        appleIdentity.emailVerified,
+      );
+
+      if (!user) {
+        user = await this.usersRepository.create({
+          email: this.normalizeEmail(appleIdentity.email),
+          displayName,
+          emailVerified: appleIdentity.emailVerified,
+        });
+        isNewUser = true;
+      } else if (!user.displayName && displayName) {
+        user = await this.usersRepository.updateProfile(user.id, {
+          displayName,
+        });
+      }
 
       await this.authIdentitiesRepository.create({
         userId: user.id,
@@ -86,7 +104,7 @@ export class SignInWithAppleInteractor {
       });
 
       this.logger.log({
-        event: 'user_registered',
+        event: isNewUser ? 'user_registered' : 'auth_identity_linked',
         provider: 'apple',
         userId: user.id,
         providerSubject: appleIdentity.providerSubject,
@@ -142,5 +160,28 @@ export class SignInWithAppleInteractor {
       refreshToken,
       user,
     };
+  }
+
+  private async findExistingVerifiedEmailUser(
+    email: string | null,
+    emailVerified: boolean,
+  ): Promise<User | null> {
+    const normalizedEmail = this.normalizeEmail(email);
+
+    if (!normalizedEmail || !emailVerified) {
+      return null;
+    }
+
+    return this.usersRepository.findByEmail(normalizedEmail);
+  }
+
+  private normalizeEmail(email: string | null): string | null {
+    const normalizedEmail = email?.trim().toLowerCase();
+    return normalizedEmail || null;
+  }
+
+  private normalizeDisplayName(displayName: string | null): string | null {
+    const normalizedDisplayName = displayName?.trim().replace(/\s+/g, ' ');
+    return normalizedDisplayName || null;
   }
 }

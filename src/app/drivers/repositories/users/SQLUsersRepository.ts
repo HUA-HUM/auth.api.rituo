@@ -3,6 +3,7 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import {
   CreateUserData,
+  UpdateUserProfileData,
   User,
   UserStatus,
 } from '../../../../core/entities/users/User';
@@ -46,6 +47,30 @@ export class SQLUsersRepository implements IUsersRepository {
     return rows[0] ? this.mapRowToUser(rows[0]) : null;
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const rows = await this.queryRows<UserRow>(
+      `
+        select
+          id,
+          email,
+          display_name as "displayName",
+          email_verified as "emailVerified",
+          status,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        from users
+        where lower(email) = $1
+        order by created_at asc
+        limit 1
+      `,
+      [normalizedEmail],
+    );
+
+    return rows[0] ? this.mapRowToUser(rows[0]) : null;
+  }
+
   async create(data: CreateUserData): Promise<User> {
     const rows = await this.queryRows<UserRow>(
       `
@@ -65,6 +90,32 @@ export class SQLUsersRepository implements IUsersRepository {
           updated_at as "updatedAt"
       `,
       [data.email, data.displayName, data.emailVerified],
+    );
+
+    return this.mapRowToUser(rows[0]);
+  }
+
+  async updateProfile(
+    userId: string,
+    data: UpdateUserProfileData,
+  ): Promise<User> {
+    const rows = await this.queryRows<UserRow>(
+      `
+        update users
+        set
+          display_name = coalesce($2, display_name),
+          updated_at = now()
+        where id = $1
+        returning
+          id,
+          email,
+          display_name as "displayName",
+          email_verified as "emailVerified",
+          status,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+      `,
+      [userId, data.displayName ?? null],
     );
 
     return this.mapRowToUser(rows[0]);

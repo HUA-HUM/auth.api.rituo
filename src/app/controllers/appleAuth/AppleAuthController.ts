@@ -38,6 +38,7 @@ export class AppleAuthController {
       authorizationCode: body.authorizationCode,
       deviceId: body.deviceId,
       deviceLabel: body.deviceLabel,
+      displayName: body.displayName,
       userAgent: userAgent ?? null,
       ipAddress,
     });

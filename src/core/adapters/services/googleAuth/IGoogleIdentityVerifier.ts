@@ -4,6 +4,7 @@ export interface VerifiedGoogleIdentity {
   providerSubject: string;
   email: string | null;
   emailVerified: boolean;
+  displayName: string | null;
 }
 
 export interface IGoogleIdentityVerifier {

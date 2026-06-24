@@ -38,4 +38,14 @@ export class SignInWithAppleDto {
   @IsString()
   @MaxLength(128)
   deviceLabel?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Display name returned by iOS from ASAuthorizationAppleIDCredential.fullName. Apple usually sends it only on the first authorization.',
+    example: 'Arturo Gutierrez',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  displayName?: string;
 }

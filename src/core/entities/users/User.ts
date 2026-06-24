@@ -15,3 +15,7 @@ export interface CreateUserData {
   displayName: string | null;
   emailVerified: boolean;
 }
+
+export interface UpdateUserProfileData {
+  displayName?: string | null;
+}

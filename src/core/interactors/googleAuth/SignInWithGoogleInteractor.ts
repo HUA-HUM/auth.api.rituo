@@ -62,19 +62,36 @@ export class SignInWithGoogleInteractor {
 
     let user: User | null;
     let isNewUser = false;
+    const displayName = this.normalizeDisplayName(googleIdentity.displayName);
 
     if (existingIdentity) {
       user = await this.usersRepository.findById(existingIdentity.userId);
       if (!user) {
         throw new UnauthorizedException('Google identity user was not found');
       }
+      if (!user.displayName && displayName) {
+        user = await this.usersRepository.updateProfile(user.id, {
+          displayName,
+        });
+      }
     } else {
-      user = await this.usersRepository.create({
-        email: googleIdentity.email,
-        displayName: null,
-        emailVerified: googleIdentity.emailVerified,
-      });
-      isNewUser = true;
+      user = await this.findExistingVerifiedEmailUser(
+        googleIdentity.email,
+        googleIdentity.emailVerified,
+      );
+
+      if (!user) {
+        user = await this.usersRepository.create({
+          email: this.normalizeEmail(googleIdentity.email),
+          displayName,
+          emailVerified: googleIdentity.emailVerified,
+        });
+        isNewUser = true;
+      } else if (!user.displayName && displayName) {
+        user = await this.usersRepository.updateProfile(user.id, {
+          displayName,
+        });
+      }
 
       await this.authIdentitiesRepository.create({
         userId: user.id,
@@ -85,7 +102,7 @@ export class SignInWithGoogleInteractor {
       });
 
       this.logger.log({
-        event: 'user_registered',
+        event: isNewUser ? 'user_registered' : 'auth_identity_linked',
         provider: 'google',
         userId: user.id,
         providerSubject: googleIdentity.providerSubject,
@@ -141,5 +158,28 @@ export class SignInWithGoogleInteractor {
       refreshToken,
       user,
     };
+  }
+
+  private async findExistingVerifiedEmailUser(
+    email: string | null,
+    emailVerified: boolean,
+  ): Promise<User | null> {
+    const normalizedEmail = this.normalizeEmail(email);
+
+    if (!normalizedEmail || !emailVerified) {
+      return null;
+    }
+
+    return this.usersRepository.findByEmail(normalizedEmail);
+  }
+
+  private normalizeEmail(email: string | null): string | null {
+    const normalizedEmail = email?.trim().toLowerCase();
+    return normalizedEmail || null;
+  }
+
+  private normalizeDisplayName(displayName: string | null): string | null {
+    const normalizedDisplayName = displayName?.trim().replace(/\s+/g, ' ');
+    return normalizedDisplayName || null;
   }
 }

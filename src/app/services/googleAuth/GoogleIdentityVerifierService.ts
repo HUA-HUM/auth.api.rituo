@@ -27,9 +27,16 @@ export class GoogleIdentityVerifier implements IGoogleIdentityVerifier {
         providerSubject: payload.sub,
         email: typeof payload.email === 'string' ? payload.email : null,
         emailVerified: payload.email_verified === true,
+        displayName:
+          typeof payload.name === 'string' ? this.normalizeName(payload.name) : null,
       };
     } catch {
       throw new UnauthorizedException('Invalid Google identity token');
     }
+  }
+
+  private normalizeName(name: string): string | null {
+    const normalizedName = name.trim().replace(/\s+/g, ' ');
+    return normalizedName || null;
   }
 }
