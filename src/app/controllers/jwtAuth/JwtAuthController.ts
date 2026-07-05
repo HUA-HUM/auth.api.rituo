@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,6 +16,7 @@ import { GetCurrentUserInteractor } from '../../../core/interactors/jwtAuth/GetC
 import { RefreshTokenDto } from '../../dtos/jwtAuth/RefreshTokenDto';
 import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
 import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuthGuard';
+import { DeleteAccountInteractor } from '../../../core/interactors/jwtAuth/DeleteAccountInteractor';
 
 @ApiTags('jwtAuth')
 @Controller('auth')
@@ -23,6 +25,7 @@ export class JwtAuthController {
     private readonly refreshTokenInteractor: RefreshTokenInteractor,
     private readonly logoutInteractor: LogoutInteractor,
     private readonly getCurrentUserInteractor: GetCurrentUserInteractor,
+    private readonly deleteAccountInteractor: DeleteAccountInteractor,
   ) {}
 
   @Post('refresh')
@@ -66,5 +69,13 @@ export class JwtAuthController {
       emailVerified: user.emailVerified,
       status: user.status,
     };
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAccount(@Req() request: AuthenticatedRequest): Promise<void> {
+    await this.deleteAccountInteractor.execute(request.auth.userId);
   }
 }

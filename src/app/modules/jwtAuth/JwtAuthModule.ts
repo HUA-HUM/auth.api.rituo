@@ -9,6 +9,7 @@ import { JwtAuthController } from '../../controllers/jwtAuth/JwtAuthController';
 import { BcryptTokenHasher } from '../../services/jwtAuth/BcryptTokenHasher';
 import { JwtTokenService } from '../../services/jwtAuth/JwtTokenService';
 import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
+import { DeleteAccountInteractor } from '../../../core/interactors/jwtAuth/DeleteAccountInteractor';
 
 @Module({
   imports: [JwtModule.register({})],
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
     RefreshTokenInteractor,
     LogoutInteractor,
     GetCurrentUserInteractor,
+    DeleteAccountInteractor,
     JwtAuthGuard,
     {
       provide: TOKEN_SERVICE,

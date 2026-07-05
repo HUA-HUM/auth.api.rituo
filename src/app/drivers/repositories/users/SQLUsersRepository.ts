@@ -121,9 +121,69 @@ export class SQLUsersRepository implements IUsersRepository {
     return this.mapRowToUser(rows[0]);
   }
 
+  async deleteAccountData(userId: string): Promise<boolean> {
+    return this.entityManager.transaction(async (manager) => {
+      await manager.query(
+        'select pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [userId],
+      );
+
+      const tagRows = (await manager.query(
+        'select tag_id as "tagId" from nfc_tag_claims where user_id = $1',
+        [userId],
+      )) as Array<{ tagId: string }>;
+
+      await manager.query('delete from nfc_tag_claims where user_id = $1', [
+        userId,
+      ]);
+      await manager.query('delete from ritual_sessions where user_id = $1', [
+        userId,
+      ]);
+      await manager.query('delete from mode_sessions where user_id = $1', [
+        userId,
+      ]);
+      await manager.query(
+        'delete from ritual_blocked_items where ritual_id in (select id from rituals where user_id = $1)',
+        [userId],
+      );
+      await manager.query(
+        'delete from mode_blocked_items where mode_id in (select id from modes where user_id = $1)',
+        [userId],
+      );
+      await manager.query('delete from rituals where user_id = $1', [userId]);
+      await manager.query('delete from modes where user_id = $1', [userId]);
+      await manager.query(
+        'delete from idempotency_operations where user_id = $1',
+        [userId],
+      );
+      await manager.query('delete from refresh_sessions where user_id = $1', [
+        userId,
+      ]);
+      await manager.query('delete from auth_identities where user_id = $1', [
+        userId,
+      ]);
+
+      for (const { tagId } of tagRows) {
+        await manager.query(
+          'delete from nfc_tags where id = $1 and not exists (select 1 from nfc_tag_claims where tag_id = $1)',
+          [tagId],
+        );
+      }
+
+      const deletedRows = (await manager.query(
+        'delete from users where id = $1 returning id',
+        [userId],
+      )) as Array<{ id: string }>;
+
+      return deletedRows.length > 0;
+    });
+  }
+
   private mapRowToUser(row: UserRow | undefined): User {
     if (!row?.id) {
-      throw new InternalServerErrorException('User row was returned without id');
+      throw new InternalServerErrorException(
+        'User row was returned without id',
+      );
     }
 
     return {
