@@ -165,7 +165,10 @@ export class SQLUsersRepository implements IUsersRepository {
 
       for (const { tagId } of tagRows) {
         await manager.query(
-          'delete from nfc_tags where id = $1 and not exists (select 1 from nfc_tag_claims where tag_id = $1)',
+          `delete from nfc_tags
+           where id = $1
+             and status <> 'lost'
+             and not exists (select 1 from nfc_tag_claims where tag_id = $1)`,
           [tagId],
         );
       }
