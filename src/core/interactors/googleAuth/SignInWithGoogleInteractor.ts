@@ -147,6 +147,10 @@ export class SignInWithGoogleInteractor {
       session.id,
       await this.tokenHasher.hash(refreshToken),
     );
+    await this.refreshSessionsRepository.revokeActiveSessionsForUserExcept(
+      user.id,
+      session.id,
+    );
 
     this.logger.log({
       event: 'user_signed_in',

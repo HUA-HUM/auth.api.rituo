@@ -8,6 +8,8 @@ import {
 import { Request } from 'express';
 import { TOKEN_SERVICE } from '../../../../core/adapters/services/jwtAuth/ITokenService';
 import type { ITokenService } from '../../../../core/adapters/services/jwtAuth/ITokenService';
+import { REFRESH_SESSIONS_REPOSITORY } from '../../../../core/adapters/repositories/refreshSessions/IRefreshSessionsRepository';
+import type { IRefreshSessionsRepository } from '../../../../core/adapters/repositories/refreshSessions/IRefreshSessionsRepository';
 
 export interface AuthenticatedRequest extends Request {
   auth: {
@@ -21,6 +23,8 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     @Inject(TOKEN_SERVICE)
     private readonly tokenService: ITokenService,
+    @Inject(REFRESH_SESSIONS_REPOSITORY)
+    private readonly refreshSessionsRepository: IRefreshSessionsRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,6 +38,19 @@ export class JwtAuthGuard implements CanActivate {
     const payload = await this.tokenService.verifyAccessToken(
       authorization.slice('Bearer '.length),
     );
+
+    const session = await this.refreshSessionsRepository.findById(
+      payload.sessionId,
+    );
+
+    if (
+      !session ||
+      session.userId !== payload.sub ||
+      session.revokedAt ||
+      session.expiresAt <= new Date()
+    ) {
+      throw new UnauthorizedException('Session was revoked');
+    }
 
     request.auth = {
       userId: payload.sub,
