@@ -4,6 +4,7 @@ import { AppController } from '../controllers/app.controller';
 import { DatabaseModule } from './database/DatabaseModule';
 import { AppleAuthModule } from './appleAuth/AppleAuthModule';
 import { GoogleAuthModule } from './googleAuth/GoogleAuthModule';
+import { EmailAuthModule } from './emailAuth/EmailAuthModule';
 import { JwtAuthModule } from './jwtAuth/JwtAuthModule';
 import { HealthModule } from './health.module';
 
@@ -13,6 +14,7 @@ import { HealthModule } from './health.module';
     DatabaseModule,
     AppleAuthModule,
     GoogleAuthModule,
+    EmailAuthModule,
     JwtAuthModule,
     HealthModule,
   ],
