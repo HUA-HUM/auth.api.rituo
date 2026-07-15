@@ -166,6 +166,9 @@ export class SQLUsersRepository implements IUsersRepository {
         'delete from email_password_credentials where user_id = $1',
         [userId],
       );
+      await manager.query('delete from password_reset_tokens where user_id = $1', [
+        userId,
+      ]);
 
       for (const { tagId } of tagRows) {
         await manager.query(

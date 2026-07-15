@@ -12,4 +12,6 @@ export interface IEmailPasswordCredentialsRepository {
     data: CreateEmailPasswordCredentialData,
   ): Promise<EmailPasswordCredential>;
   findByEmail(email: string): Promise<EmailPasswordCredential | null>;
+  findByUserId(userId: string): Promise<EmailPasswordCredential | null>;
+  updatePasswordHash(userId: string, passwordHash: string): Promise<boolean>;
 }

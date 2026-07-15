@@ -70,6 +70,45 @@ export class SQLEmailPasswordCredentialsRepository
     return rows[0] ? this.mapRowToCredential(rows[0]) : null;
   }
 
+  async findByUserId(userId: string): Promise<EmailPasswordCredential | null> {
+    const rows = await this.queryRows<EmailPasswordCredentialRow>(
+      `
+        select
+          id::text as "id",
+          user_id::text as "userId",
+          email,
+          password_hash as "passwordHash",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        from email_password_credentials
+        where user_id = $1
+        limit 1
+      `,
+      [userId],
+    );
+
+    return rows[0] ? this.mapRowToCredential(rows[0]) : null;
+  }
+
+  async updatePasswordHash(
+    userId: string,
+    passwordHash: string,
+  ): Promise<boolean> {
+    const rows = await this.queryRows<{ id: string }>(
+      `
+        update email_password_credentials
+        set
+          password_hash = $2,
+          updated_at = now()
+        where user_id = $1
+        returning id::text as "id"
+      `,
+      [userId, passwordHash],
+    );
+
+    return rows.length > 0;
+  }
+
   private mapRowToCredential(
     row: EmailPasswordCredentialRow,
   ): EmailPasswordCredential {

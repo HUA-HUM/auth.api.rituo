@@ -121,6 +121,18 @@ export class SQLRefreshSessionsRepository implements IRefreshSessionsRepository 
     );
   }
 
+  async revokeActiveSessionsForUser(userId: string): Promise<void> {
+    await this.entityManager.query(
+      `
+        update refresh_sessions
+        set revoked_at = now()
+        where user_id = $1
+          and revoked_at is null
+      `,
+      [userId],
+    );
+  }
+
   async revokeActiveSessionsForUserExcept(
     userId: string,
     sessionId: string,

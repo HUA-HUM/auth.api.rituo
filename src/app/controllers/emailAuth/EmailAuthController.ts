@@ -9,13 +9,17 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiConflictResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ForgotPasswordInteractor } from '../../../core/interactors/emailAuth/ForgotPasswordInteractor';
 import { RegisterWithEmailInteractor } from '../../../core/interactors/emailAuth/RegisterWithEmailInteractor';
+import { ResetPasswordInteractor } from '../../../core/interactors/emailAuth/ResetPasswordInteractor';
 import { SignInWithEmailInteractor } from '../../../core/interactors/emailAuth/SignInWithEmailInteractor';
 import {
   EmailAuthResponseDto,
   mapEmailAuthResponse,
 } from '../../dtos/emailAuth/EmailAuthResponseDto';
 import { RegisterWithEmailDto } from '../../dtos/emailAuth/RegisterWithEmailDto';
+import { ForgotPasswordDto } from '../../dtos/emailAuth/ForgotPasswordDto';
+import { ResetPasswordDto } from '../../dtos/emailAuth/ResetPasswordDto';
 import { SignInWithEmailDto } from '../../dtos/emailAuth/SignInWithEmailDto';
 
 @ApiTags('emailAuth')
@@ -24,6 +28,8 @@ export class EmailAuthController {
   constructor(
     private readonly registerWithEmailInteractor: RegisterWithEmailInteractor,
     private readonly signInWithEmailInteractor: SignInWithEmailInteractor,
+    private readonly forgotPasswordInteractor: ForgotPasswordInteractor,
+    private readonly resetPasswordInteractor: ResetPasswordInteractor,
   ) {}
 
   @Post('register')
@@ -77,5 +83,26 @@ export class EmailAuthController {
     });
 
     return mapEmailAuthResponse(result);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description:
+      'Sends a password reset email when the account exists. Always returns OK.',
+  })
+  async forgotPassword(@Body() body: ForgotPasswordDto): Promise<{ ok: true }> {
+    await this.forgotPasswordInteractor.execute({ email: body.email });
+    return { ok: true };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resetPassword(@Body() body: ResetPasswordDto): Promise<void> {
+    await this.resetPasswordInteractor.execute({
+      token: body.token,
+      newPassword: body.newPassword,
+      newPasswordConfirmation: body.newPasswordConfirmation,
+    });
   }
 }
