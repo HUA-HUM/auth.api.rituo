@@ -121,6 +121,29 @@ export class SQLUsersRepository implements IUsersRepository {
     return this.mapRowToUser(rows[0]);
   }
 
+  async markEmailVerified(userId: string): Promise<User> {
+    const rows = await this.queryRows<UserRow>(
+      `
+        update users
+        set
+          email_verified = true,
+          updated_at = now()
+        where id = $1
+        returning
+          id::text as "id",
+          email,
+          display_name as "displayName",
+          email_verified as "emailVerified",
+          status,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+      `,
+      [userId],
+    );
+
+    return this.mapRowToUser(rows[0]);
+  }
+
   async deleteAccountData(userId: string): Promise<boolean> {
     return this.entityManager.transaction(async (manager) => {
       await manager.query(
@@ -169,6 +192,10 @@ export class SQLUsersRepository implements IUsersRepository {
       await manager.query('delete from password_reset_tokens where user_id = $1', [
         userId,
       ]);
+      await manager.query(
+        'delete from email_verification_tokens where user_id = $1',
+        [userId],
+      );
 
       for (const { tagId } of tagRows) {
         await manager.query(

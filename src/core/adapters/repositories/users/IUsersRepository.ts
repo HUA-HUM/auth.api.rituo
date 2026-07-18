@@ -11,5 +11,6 @@ export interface IUsersRepository {
   findByEmail(email: string): Promise<User | null>;
   create(data: CreateUserData): Promise<User>;
   updateProfile(userId: string, data: UpdateUserProfileData): Promise<User>;
+  markEmailVerified(userId: string): Promise<User>;
   deleteAccountData(userId: string): Promise<boolean>;
 }

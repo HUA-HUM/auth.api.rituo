@@ -5,6 +5,14 @@ export interface SendPasswordResetEmailData {
   resetUrl: string;
 }
 
+export interface SendEmailVerificationEmailData {
+  to: string;
+  verifyUrl: string;
+}
+
 export interface IEmailSender {
   sendPasswordResetEmail(data: SendPasswordResetEmailData): Promise<void>;
+  sendEmailVerificationEmail(
+    data: SendEmailVerificationEmailData,
+  ): Promise<void>;
 }

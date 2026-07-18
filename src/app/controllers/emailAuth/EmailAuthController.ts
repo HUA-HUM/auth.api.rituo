@@ -12,15 +12,19 @@ import { ApiConflictResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ForgotPasswordInteractor } from '../../../core/interactors/emailAuth/ForgotPasswordInteractor';
 import { RegisterWithEmailInteractor } from '../../../core/interactors/emailAuth/RegisterWithEmailInteractor';
 import { ResetPasswordInteractor } from '../../../core/interactors/emailAuth/ResetPasswordInteractor';
+import { SendEmailVerificationInteractor } from '../../../core/interactors/emailAuth/SendEmailVerificationInteractor';
 import { SignInWithEmailInteractor } from '../../../core/interactors/emailAuth/SignInWithEmailInteractor';
+import { VerifyEmailInteractor } from '../../../core/interactors/emailAuth/VerifyEmailInteractor';
 import {
   EmailAuthResponseDto,
   mapEmailAuthResponse,
 } from '../../dtos/emailAuth/EmailAuthResponseDto';
 import { RegisterWithEmailDto } from '../../dtos/emailAuth/RegisterWithEmailDto';
 import { ForgotPasswordDto } from '../../dtos/emailAuth/ForgotPasswordDto';
+import { ResendEmailVerificationDto } from '../../dtos/emailAuth/ResendEmailVerificationDto';
 import { ResetPasswordDto } from '../../dtos/emailAuth/ResetPasswordDto';
 import { SignInWithEmailDto } from '../../dtos/emailAuth/SignInWithEmailDto';
+import { VerifyEmailDto } from '../../dtos/emailAuth/VerifyEmailDto';
 
 @ApiTags('emailAuth')
 @Controller('auth/email')
@@ -30,6 +34,8 @@ export class EmailAuthController {
     private readonly signInWithEmailInteractor: SignInWithEmailInteractor,
     private readonly forgotPasswordInteractor: ForgotPasswordInteractor,
     private readonly resetPasswordInteractor: ResetPasswordInteractor,
+    private readonly sendEmailVerificationInteractor: SendEmailVerificationInteractor,
+    private readonly verifyEmailInteractor: VerifyEmailInteractor,
   ) {}
 
   @Post('register')
@@ -104,5 +110,39 @@ export class EmailAuthController {
       newPassword: body.newPassword,
       newPasswordConfirmation: body.newPasswordConfirmation,
     });
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description:
+      'Sends an email verification link when the account exists and is not verified. Always returns OK.',
+  })
+  async resendVerification(
+    @Body() body: ResendEmailVerificationDto,
+  ): Promise<{ ok: true }> {
+    await this.sendEmailVerificationInteractor.execute({ email: body.email });
+    return { ok: true };
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description: 'Marks an email account as verified when the token is valid.',
+  })
+  async verifyEmail(@Body() body: VerifyEmailDto): Promise<{
+    id: string;
+    email: string | null;
+    displayName: string | null;
+    emailVerified: boolean;
+  }> {
+    const user = await this.verifyEmailInteractor.execute({ token: body.token });
+
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      emailVerified: user.emailVerified,
+    };
   }
 }

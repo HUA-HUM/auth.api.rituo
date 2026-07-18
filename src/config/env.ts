@@ -25,4 +25,9 @@ export const env = {
   passwordResetTokenTtlMinutes: Number(
     process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES ?? 30,
   ),
+  emailVerificationBaseUrl:
+    process.env.EMAIL_VERIFICATION_BASE_URL ?? 'https://rituo.io/verify-email',
+  emailVerificationTokenTtlMinutes: Number(
+    process.env.EMAIL_VERIFICATION_TOKEN_TTL_MINUTES ?? 1440,
+  ),
 };

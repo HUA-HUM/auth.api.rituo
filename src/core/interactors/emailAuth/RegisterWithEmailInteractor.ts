@@ -21,6 +21,7 @@ import { EmailAuthResult } from '../../entities/emailAuth/EmailAuthResult';
 import { User } from '../../entities/users/User';
 import { ttlToMilliseconds } from '../common/ttlToMilliseconds';
 import { env } from '../../../config/env';
+import { SendEmailVerificationInteractor } from './SendEmailVerificationInteractor';
 
 export interface RegisterWithEmailCommand {
   email: string;
@@ -48,6 +49,7 @@ export class RegisterWithEmailInteractor {
     private readonly tokenService: ITokenService,
     @Inject(TOKEN_HASHER)
     private readonly tokenHasher: ITokenHasher,
+    private readonly sendEmailVerificationInteractor: SendEmailVerificationInteractor,
   ) {}
 
   async execute(command: RegisterWithEmailCommand): Promise<EmailAuthResult> {
@@ -88,6 +90,8 @@ export class RegisterWithEmailInteractor {
 
     const result = await this.createSession(user, command);
 
+    await this.sendVerificationEmail(email, user.id);
+
     this.logger.log({
       event: 'user_registered',
       provider: 'email',
@@ -101,6 +105,18 @@ export class RegisterWithEmailInteractor {
       refreshToken: result.refreshToken,
       user,
     };
+  }
+
+  private async sendVerificationEmail(email: string, userId: string): Promise<void> {
+    try {
+      await this.sendEmailVerificationInteractor.execute({ email });
+    } catch (error) {
+      this.logger.error({
+        event: 'email_verification_send_failed_after_register',
+        userId,
+        error: error instanceof Error ? error.message : error,
+      });
+    }
   }
 
   private async createSession(
