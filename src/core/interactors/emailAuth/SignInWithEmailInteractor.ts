@@ -47,7 +47,7 @@ export class SignInWithEmailInteractor {
       await this.emailPasswordCredentialsRepository.findByEmail(email);
 
     if (!credential) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Email account not found');
     }
 
     const isPasswordValid = await this.tokenHasher.compare(
@@ -56,7 +56,7 @@ export class SignInWithEmailInteractor {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid password');
     }
 
     const user = await this.usersRepository.findById(credential.userId);
