@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { REFRESH_SESSIONS_REPOSITORY } from '../../adapters/repositories/refreshSessions/IRefreshSessionsRepository';
 import type { IRefreshSessionsRepository } from '../../adapters/repositories/refreshSessions/IRefreshSessionsRepository';
 import { TOKEN_HASHER } from '../../adapters/services/jwtAuth/ITokenHasher';
@@ -50,6 +55,10 @@ export class RefreshTokenInteractor {
     const user = await this.usersRepository.findById(payload.sub);
     if (!user || user.status !== 'active') {
       throw new UnauthorizedException('User is not active');
+    }
+
+    if (user.email && !user.emailVerified) {
+      throw new ForbiddenException('Email is not verified');
     }
 
     const accessToken = await this.tokenService.signAccessToken({

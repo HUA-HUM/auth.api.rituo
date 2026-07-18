@@ -20,6 +20,10 @@ import {
   mapEmailAuthResponse,
 } from '../../dtos/emailAuth/EmailAuthResponseDto';
 import { RegisterWithEmailDto } from '../../dtos/emailAuth/RegisterWithEmailDto';
+import {
+  mapRegisterWithEmailResponse,
+  RegisterWithEmailResponseDto,
+} from '../../dtos/emailAuth/RegisterWithEmailResponseDto';
 import { ForgotPasswordDto } from '../../dtos/emailAuth/ForgotPasswordDto';
 import { ResendEmailVerificationDto } from '../../dtos/emailAuth/ResendEmailVerificationDto';
 import { ResetPasswordDto } from '../../dtos/emailAuth/ResetPasswordDto';
@@ -42,14 +46,14 @@ export class EmailAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     description:
-      'Creates a rituo user with email/password and returns access and refresh tokens.',
+      'Creates a rituo user with email/password and sends an email verification link.',
   })
   @ApiConflictResponse({ description: 'Email is already registered.' })
   async register(
     @Body() body: RegisterWithEmailDto,
     @Ip() ipAddress: string,
     @Headers('user-agent') userAgent?: string,
-  ): Promise<EmailAuthResponseDto> {
+  ): Promise<RegisterWithEmailResponseDto> {
     if (body.password !== body.passwordConfirmation) {
       throw new BadRequestException('password confirmation does not match');
     }
@@ -65,7 +69,7 @@ export class EmailAuthController {
       ipAddress,
     });
 
-    return mapEmailAuthResponse(result);
+    return mapRegisterWithEmailResponse(result);
   }
 
   @Post('login')

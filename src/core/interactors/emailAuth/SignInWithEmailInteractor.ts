@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { USERS_REPOSITORY } from '../../adapters/repositories/users/IUsersRepository';
 import type { IUsersRepository } from '../../adapters/repositories/users/IUsersRepository';
@@ -63,6 +69,10 @@ export class SignInWithEmailInteractor {
 
     if (!user || user.status !== 'active') {
       throw new UnauthorizedException('User is disabled');
+    }
+
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Email is not verified');
     }
 
     const result = await this.createSession(user, command);
