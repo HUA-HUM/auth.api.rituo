@@ -1,8 +1,13 @@
+import { ClientPlatform } from './ClientMetadata';
+
 export interface RefreshSession {
   id: string;
   userId: string;
   deviceId: string;
   deviceLabel: string | null;
+  platform: ClientPlatform;
+  appVersion: string | null;
+  appBuild: string | null;
   tokenHash: string;
   userAgent: string | null;
   ipAddress: string | null;
@@ -17,6 +22,9 @@ export interface CreateRefreshSessionData {
   userId: string;
   deviceId: string;
   deviceLabel: string | null;
+  platform?: ClientPlatform;
+  appVersion?: string | null;
+  appBuild?: string | null;
   tokenHash: string;
   userAgent: string | null;
   ipAddress: string | null;

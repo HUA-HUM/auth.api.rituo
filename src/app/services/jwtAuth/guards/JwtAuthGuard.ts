@@ -10,11 +10,14 @@ import { TOKEN_SERVICE } from '../../../../core/adapters/services/jwtAuth/IToken
 import type { ITokenService } from '../../../../core/adapters/services/jwtAuth/ITokenService';
 import { REFRESH_SESSIONS_REPOSITORY } from '../../../../core/adapters/repositories/refreshSessions/IRefreshSessionsRepository';
 import type { IRefreshSessionsRepository } from '../../../../core/adapters/repositories/refreshSessions/IRefreshSessionsRepository';
+import { ClientPlatform } from '../../../../core/entities/refreshSessions/ClientMetadata';
 
 export interface AuthenticatedRequest extends Request {
   auth: {
     userId: string;
     sessionId: string;
+    deviceId: string;
+    platform: ClientPlatform;
   };
 }
 
@@ -55,6 +58,8 @@ export class JwtAuthGuard implements CanActivate {
     request.auth = {
       userId: payload.sub,
       sessionId: payload.sessionId,
+      deviceId: session.deviceId,
+      platform: session.platform,
     };
 
     return true;

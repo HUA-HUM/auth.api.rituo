@@ -65,6 +65,9 @@ export class EmailAuthController {
       password: body.password,
       deviceId: body.deviceId,
       deviceLabel: body.deviceLabel,
+      platform: body.platform,
+      appVersion: body.appVersion,
+      appBuild: body.appBuild,
       userAgent: userAgent ?? null,
       ipAddress,
     });
@@ -88,6 +91,9 @@ export class EmailAuthController {
       password: body.password,
       deviceId: body.deviceId,
       deviceLabel: body.deviceLabel,
+      platform: body.platform,
+      appVersion: body.appVersion,
+      appBuild: body.appBuild,
       userAgent: userAgent ?? null,
       ipAddress,
     });
@@ -140,7 +146,9 @@ export class EmailAuthController {
     displayName: string | null;
     emailVerified: boolean;
   }> {
-    const user = await this.verifyEmailInteractor.execute({ token: body.token });
+    const user = await this.verifyEmailInteractor.execute({
+      token: body.token,
+    });
 
     return {
       id: user.id,

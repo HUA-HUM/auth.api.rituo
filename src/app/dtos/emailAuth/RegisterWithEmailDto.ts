@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsOptional,
+  IsIn,
   IsString,
   MaxLength,
   MinLength,
@@ -55,4 +56,25 @@ export class RegisterWithEmailDto {
   @IsString()
   @MaxLength(128)
   deviceLabel?: string;
+
+  @ApiPropertyOptional({
+    enum: ['ios', 'android'],
+    default: 'ios',
+    description: 'Client platform. Legacy clients default to iOS.',
+  })
+  @IsOptional()
+  @IsIn(['ios', 'android'])
+  platform?: 'ios' | 'android';
+
+  @ApiPropertyOptional({ example: '1.0.0' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  appVersion?: string;
+
+  @ApiPropertyOptional({ example: '1' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  appBuild?: string;
 }

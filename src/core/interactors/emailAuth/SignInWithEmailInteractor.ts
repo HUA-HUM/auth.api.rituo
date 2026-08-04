@@ -20,12 +20,20 @@ import { EmailAuthResult } from '../../entities/emailAuth/EmailAuthResult';
 import { User } from '../../entities/users/User';
 import { ttlToMilliseconds } from '../common/ttlToMilliseconds';
 import { env } from '../../../config/env';
+import {
+  ClientPlatform,
+  normalizeClientPlatform,
+  normalizeOptionalClientText,
+} from '../../entities/refreshSessions/ClientMetadata';
 
 export interface SignInWithEmailCommand {
   email: string;
   password: string;
   deviceId: string;
   deviceLabel?: string | null;
+  platform?: ClientPlatform | null;
+  appVersion?: string | null;
+  appBuild?: string | null;
   userAgent?: string | null;
   ipAddress?: string | null;
 }
@@ -100,11 +108,15 @@ export class SignInWithEmailInteractor {
       Date.now() + ttlToMilliseconds(env.jwtRefreshTtl),
     );
     const temporaryTokenHash = await this.tokenHasher.hash(randomUUID());
+    const platform = normalizeClientPlatform(command.platform);
 
     const session = await this.refreshSessionsRepository.create({
       userId: user.id,
       deviceId: command.deviceId,
       deviceLabel: command.deviceLabel ?? null,
+      platform,
+      appVersion: normalizeOptionalClientText(command.appVersion),
+      appBuild: normalizeOptionalClientText(command.appBuild),
       tokenHash: temporaryTokenHash,
       userAgent: command.userAgent ?? null,
       ipAddress: command.ipAddress ?? null,
@@ -114,12 +126,16 @@ export class SignInWithEmailInteractor {
     const accessToken = await this.tokenService.signAccessToken({
       sub: user.id,
       sessionId: session.id,
+      deviceId: session.deviceId,
+      platform: session.platform,
     });
 
     const refreshToken = await this.tokenService.signRefreshToken({
       sub: user.id,
       sessionId: session.id,
       typ: 'refresh',
+      deviceId: session.deviceId,
+      platform: session.platform,
     });
 
     await this.refreshSessionsRepository.updateTokenHash(

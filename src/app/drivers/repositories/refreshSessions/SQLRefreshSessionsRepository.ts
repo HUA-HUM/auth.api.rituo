@@ -6,12 +6,16 @@ import {
   RefreshSession,
 } from '../../../../core/entities/refreshSessions/RefreshSession';
 import { IRefreshSessionsRepository } from '../../../../core/adapters/repositories/refreshSessions/IRefreshSessionsRepository';
+import { ClientPlatform } from '../../../../core/entities/refreshSessions/ClientMetadata';
 
 interface RefreshSessionRow {
   id: string;
   userId: string;
   deviceId: string;
   deviceLabel: string | null;
+  platform: ClientPlatform;
+  appVersion: string | null;
+  appBuild: string | null;
   tokenHash: string;
   userAgent: string | null;
   ipAddress: string | null;
@@ -36,17 +40,23 @@ export class SQLRefreshSessionsRepository implements IRefreshSessionsRepository 
           user_id,
           device_id,
           device_label,
+          platform,
+          app_version,
+          app_build,
           token_hash,
           user_agent,
           ip_address,
           expires_at
         )
-        values ($1, $2, $3, $4, $5, $6, $7)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         returning
           id,
           user_id as "userId",
           device_id as "deviceId",
           device_label as "deviceLabel",
+          platform,
+          app_version as "appVersion",
+          app_build as "appBuild",
           token_hash as "tokenHash",
           user_agent as "userAgent",
           ip_address::text as "ipAddress",
@@ -60,6 +70,9 @@ export class SQLRefreshSessionsRepository implements IRefreshSessionsRepository 
         data.userId,
         data.deviceId,
         data.deviceLabel,
+        data.platform ?? 'ios',
+        data.appVersion ?? null,
+        data.appBuild ?? null,
         data.tokenHash,
         data.userAgent,
         data.ipAddress,
@@ -78,6 +91,9 @@ export class SQLRefreshSessionsRepository implements IRefreshSessionsRepository 
           user_id as "userId",
           device_id as "deviceId",
           device_label as "deviceLabel",
+          platform,
+          app_version as "appVersion",
+          app_build as "appBuild",
           token_hash as "tokenHash",
           user_agent as "userAgent",
           ip_address::text as "ipAddress",
@@ -155,6 +171,9 @@ export class SQLRefreshSessionsRepository implements IRefreshSessionsRepository 
       userId: row.userId,
       deviceId: row.deviceId,
       deviceLabel: row.deviceLabel,
+      platform: row.platform,
+      appVersion: row.appVersion,
+      appBuild: row.appBuild,
       tokenHash: row.tokenHash,
       userAgent: row.userAgent,
       ipAddress: row.ipAddress,

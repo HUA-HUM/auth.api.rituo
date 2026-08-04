@@ -64,11 +64,15 @@ export class RefreshTokenInteractor {
     const accessToken = await this.tokenService.signAccessToken({
       sub: user.id,
       sessionId: session.id,
+      deviceId: session.deviceId,
+      platform: session.platform,
     });
     const rotatedRefreshToken = await this.tokenService.signRefreshToken({
       sub: user.id,
       sessionId: session.id,
       typ: 'refresh',
+      deviceId: session.deviceId,
+      platform: session.platform,
     });
 
     await this.refreshSessionsRepository.updateTokenHash(
