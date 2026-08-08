@@ -12,7 +12,6 @@ import type { IEmailPasswordCredentialsRepository } from '../../adapters/reposit
 import { TOKEN_HASHER } from '../../adapters/services/jwtAuth/ITokenHasher';
 import type { ITokenHasher } from '../../adapters/services/jwtAuth/ITokenHasher';
 import { User } from '../../entities/users/User';
-import { SendEmailVerificationInteractor } from './SendEmailVerificationInteractor';
 import {
   ClientPlatform,
   normalizeClientPlatform,
@@ -23,6 +22,7 @@ export interface RegisterWithEmailCommand {
   email: string;
   firstName: string;
   lastName: string;
+  dateOfBirth: string;
   password: string;
   deviceId: string;
   deviceLabel?: string | null;
@@ -49,7 +49,6 @@ export class RegisterWithEmailInteractor {
     private readonly emailPasswordCredentialsRepository: IEmailPasswordCredentialsRepository,
     @Inject(TOKEN_HASHER)
     private readonly tokenHasher: ITokenHasher,
-    private readonly sendEmailVerificationInteractor: SendEmailVerificationInteractor,
   ) {}
 
   async execute(
@@ -60,6 +59,7 @@ export class RegisterWithEmailInteractor {
       command.firstName,
       command.lastName,
     );
+    const dateOfBirth = this.validateDateOfBirth(command.dateOfBirth);
     this.validatePassword(command.password);
     const platform = normalizeClientPlatform(command.platform);
 
@@ -75,7 +75,8 @@ export class RegisterWithEmailInteractor {
     const user: User = await this.usersRepository.create({
       email,
       displayName,
-      emailVerified: false,
+      dateOfBirth,
+      emailVerified: true,
     });
 
     await this.emailPasswordCredentialsRepository.create({
@@ -83,8 +84,6 @@ export class RegisterWithEmailInteractor {
       email,
       passwordHash: await this.tokenHasher.hash(command.password),
     });
-
-    await this.sendVerificationEmail(email, user.id);
 
     this.logger.log({
       event: 'user_registered',
@@ -100,21 +99,6 @@ export class RegisterWithEmailInteractor {
       user,
       emailVerificationRequired: !user.emailVerified,
     };
-  }
-
-  private async sendVerificationEmail(
-    email: string,
-    userId: string,
-  ): Promise<void> {
-    try {
-      await this.sendEmailVerificationInteractor.execute({ email });
-    } catch (error) {
-      this.logger.error({
-        event: 'email_verification_send_failed_after_register',
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
   }
 
   private normalizeEmail(email: string): string {
@@ -145,5 +129,44 @@ export class RegisterWithEmailInteractor {
         'password must contain between 8 and 72 characters',
       );
     }
+  }
+
+  private validateDateOfBirth(value: string): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (!match) {
+      throw new BadRequestException('dateOfBirth must use YYYY-MM-DD format');
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const birthDate = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+      birthDate.getUTCFullYear() !== year ||
+      birthDate.getUTCMonth() !== month - 1 ||
+      birthDate.getUTCDate() !== day
+    ) {
+      throw new BadRequestException('dateOfBirth must be a valid date');
+    }
+
+    const today = new Date();
+    let age = today.getUTCFullYear() - year;
+    const birthdayHasPassed =
+      today.getUTCMonth() > month - 1 ||
+      (today.getUTCMonth() === month - 1 && today.getUTCDate() >= day);
+
+    if (!birthdayHasPassed) {
+      age -= 1;
+    }
+
+    if (age < 16) {
+      throw new BadRequestException(
+        'user must be at least 16 years old to register',
+      );
+    }
+
+    return value;
   }
 }

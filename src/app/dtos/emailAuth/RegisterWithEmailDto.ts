@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsIn,
+  Matches,
   IsString,
   MaxLength,
   MinLength,
@@ -26,6 +27,14 @@ export class RegisterWithEmailDto {
   @IsNotEmpty()
   @MaxLength(80)
   lastName: string;
+
+  @ApiProperty({
+    description: 'Birth date in ISO calendar-date format.',
+    example: '1990-08-08',
+  })
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  dateOfBirth: string;
 
   @ApiProperty({ minLength: 8, maxLength: 72 })
   @IsString()

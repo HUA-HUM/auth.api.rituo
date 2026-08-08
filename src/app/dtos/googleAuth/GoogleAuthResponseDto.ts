@@ -7,6 +7,7 @@ export interface GoogleAuthResponseDto {
     id: string;
     email: string | null;
     displayName: string | null;
+    dateOfBirth: string | null;
     emailVerified: boolean;
     status: string;
   };
@@ -24,6 +25,7 @@ export function mapGoogleAuthResponse(input: {
       id: input.user.id,
       email: input.user.email,
       displayName: input.user.displayName,
+      dateOfBirth: input.user.dateOfBirth,
       emailVerified: input.user.emailVerified,
       status: input.user.status,
     },

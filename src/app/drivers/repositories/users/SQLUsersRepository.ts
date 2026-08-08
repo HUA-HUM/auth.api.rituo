@@ -13,6 +13,7 @@ interface UserRow {
   id: string;
   email: string | null;
   displayName: string | null;
+  dateOfBirth: string | null;
   emailVerified: boolean;
   status: UserStatus;
   createdAt: Date;
@@ -33,6 +34,7 @@ export class SQLUsersRepository implements IUsersRepository {
           id::text as "id",
           email,
           display_name as "displayName",
+          date_of_birth::text as "dateOfBirth",
           email_verified as "emailVerified",
           status,
           created_at as "createdAt",
@@ -56,6 +58,7 @@ export class SQLUsersRepository implements IUsersRepository {
           id::text as "id",
           email,
           display_name as "displayName",
+          date_of_birth::text as "dateOfBirth",
           email_verified as "emailVerified",
           status,
           created_at as "createdAt",
@@ -77,19 +80,26 @@ export class SQLUsersRepository implements IUsersRepository {
         insert into users (
           email,
           display_name,
+          date_of_birth,
           email_verified
         )
-        values ($1, $2, $3)
+        values ($1, $2, $3::date, $4)
         returning
           id::text as "id",
           email,
           display_name as "displayName",
+          date_of_birth::text as "dateOfBirth",
           email_verified as "emailVerified",
           status,
           created_at as "createdAt",
           updated_at as "updatedAt"
       `,
-      [data.email, data.displayName, data.emailVerified],
+      [
+        data.email,
+        data.displayName,
+        data.dateOfBirth ?? null,
+        data.emailVerified,
+      ],
     );
 
     return this.mapRowToUser(rows[0]);
@@ -110,6 +120,7 @@ export class SQLUsersRepository implements IUsersRepository {
           id::text as "id",
           email,
           display_name as "displayName",
+          date_of_birth::text as "dateOfBirth",
           email_verified as "emailVerified",
           status,
           created_at as "createdAt",
@@ -133,6 +144,7 @@ export class SQLUsersRepository implements IUsersRepository {
           id::text as "id",
           email,
           display_name as "displayName",
+          date_of_birth::text as "dateOfBirth",
           email_verified as "emailVerified",
           status,
           created_at as "createdAt",
@@ -227,6 +239,7 @@ export class SQLUsersRepository implements IUsersRepository {
       id: row.id,
       email: row.email,
       displayName: row.displayName,
+      dateOfBirth: row.dateOfBirth,
       emailVerified: row.emailVerified,
       status: row.status,
       createdAt: new Date(row.createdAt),

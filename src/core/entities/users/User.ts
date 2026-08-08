@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string | null;
   displayName: string | null;
+  dateOfBirth: string | null;
   emailVerified: boolean;
   status: UserStatus;
   createdAt: Date;
@@ -13,6 +14,7 @@ export interface User {
 export interface CreateUserData {
   email: string | null;
   displayName: string | null;
+  dateOfBirth?: string | null;
   emailVerified: boolean;
 }
 

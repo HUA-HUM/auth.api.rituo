@@ -46,7 +46,7 @@ export class EmailAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     description:
-      'Creates a rituo user with email/password and sends an email verification link.',
+      'Creates an email/password account for a user who is at least 16 years old.',
   })
   @ApiConflictResponse({ description: 'Email is already registered.' })
   async register(
@@ -62,6 +62,7 @@ export class EmailAuthController {
       email: body.email,
       firstName: body.firstName,
       lastName: body.lastName,
+      dateOfBirth: body.dateOfBirth,
       password: body.password,
       deviceId: body.deviceId,
       deviceLabel: body.deviceLabel,

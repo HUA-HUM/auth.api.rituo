@@ -6,6 +6,7 @@ describe('SQLUsersRepository', () => {
       id: '2d7fe577-d0ad-4eed-9af8-1e72b8153fd1',
       email: 'user@example.com',
       displayName: 'Rituo User',
+      dateOfBirth: '1990-08-08',
       emailVerified: true,
       status: 'active',
       createdAt: new Date('2026-07-05T10:00:00.000Z'),
@@ -20,6 +21,7 @@ describe('SQLUsersRepository', () => {
       repository.create({
         email: row.email,
         displayName: row.displayName,
+        dateOfBirth: row.dateOfBirth,
         emailVerified: true,
       }),
     ).resolves.toMatchObject({ id: row.id, email: row.email });
