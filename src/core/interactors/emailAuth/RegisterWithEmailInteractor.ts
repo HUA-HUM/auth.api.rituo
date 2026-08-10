@@ -12,6 +12,7 @@ import type { IEmailPasswordCredentialsRepository } from '../../adapters/reposit
 import { TOKEN_HASHER } from '../../adapters/services/jwtAuth/ITokenHasher';
 import type { ITokenHasher } from '../../adapters/services/jwtAuth/ITokenHasher';
 import { User } from '../../entities/users/User';
+import { SendEmailVerificationInteractor } from './SendEmailVerificationInteractor';
 import {
   ClientPlatform,
   normalizeClientPlatform,
@@ -49,6 +50,7 @@ export class RegisterWithEmailInteractor {
     private readonly emailPasswordCredentialsRepository: IEmailPasswordCredentialsRepository,
     @Inject(TOKEN_HASHER)
     private readonly tokenHasher: ITokenHasher,
+    private readonly sendEmailVerificationInteractor: SendEmailVerificationInteractor,
   ) {}
 
   async execute(
@@ -76,7 +78,7 @@ export class RegisterWithEmailInteractor {
       email,
       displayName,
       dateOfBirth,
-      emailVerified: true,
+      emailVerified: false,
     });
 
     await this.emailPasswordCredentialsRepository.create({
@@ -84,6 +86,8 @@ export class RegisterWithEmailInteractor {
       email,
       passwordHash: await this.tokenHasher.hash(command.password),
     });
+
+    await this.sendVerificationEmail(email, user.id);
 
     this.logger.log({
       event: 'user_registered',
@@ -99,6 +103,21 @@ export class RegisterWithEmailInteractor {
       user,
       emailVerificationRequired: !user.emailVerified,
     };
+  }
+
+  private async sendVerificationEmail(
+    email: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      await this.sendEmailVerificationInteractor.execute({ email });
+    } catch (error) {
+      this.logger.error({
+        event: 'email_verification_send_failed_after_register',
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   private normalizeEmail(email: string): string {

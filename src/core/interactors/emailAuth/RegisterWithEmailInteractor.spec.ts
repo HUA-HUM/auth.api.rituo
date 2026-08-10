@@ -11,10 +11,12 @@ describe('RegisterWithEmailInteractor', () => {
     create: jest.fn(),
   };
   const tokenHasher = { hash: jest.fn() };
+  const sendEmailVerificationInteractor = { execute: jest.fn() };
   const interactor = new RegisterWithEmailInteractor(
     usersRepository as never,
     credentialsRepository as never,
     tokenHasher as never,
+    sendEmailVerificationInteractor as never,
   );
 
   beforeEach(() => {
@@ -24,13 +26,14 @@ describe('RegisterWithEmailInteractor', () => {
     credentialsRepository.findByEmail.mockResolvedValue(null);
     tokenHasher.hash.mockResolvedValue('password-hash');
     credentialsRepository.create.mockResolvedValue(undefined);
+    sendEmailVerificationInteractor.execute.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('registers a user who turns 16 today without email verification', async () => {
+  it('registers a user who turns 16 today and requires email verification', async () => {
     usersRepository.create.mockImplementation(async (data) => ({
       id: 'user-id',
       email: data.email,
@@ -55,9 +58,12 @@ describe('RegisterWithEmailInteractor', () => {
       email: 'person@example.com',
       displayName: 'Rituo User',
       dateOfBirth: '2010-08-08',
-      emailVerified: true,
+      emailVerified: false,
     });
-    expect(result.emailVerificationRequired).toBe(false);
+    expect(sendEmailVerificationInteractor.execute).toHaveBeenCalledWith({
+      email: 'person@example.com',
+    });
+    expect(result.emailVerificationRequired).toBe(true);
   });
 
   it('blocks a user who turns 16 tomorrow before creating any data', async () => {
@@ -75,5 +81,6 @@ describe('RegisterWithEmailInteractor', () => {
     expect(usersRepository.findByEmail).not.toHaveBeenCalled();
     expect(usersRepository.create).not.toHaveBeenCalled();
     expect(credentialsRepository.create).not.toHaveBeenCalled();
+    expect(sendEmailVerificationInteractor.execute).not.toHaveBeenCalled();
   });
 });
