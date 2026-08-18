@@ -13,5 +13,8 @@ export interface IRefreshSessionsRepository {
   updateTokenHash(sessionId: string, tokenHash: string): Promise<void>;
   revoke(sessionId: string): Promise<void>;
   revokeActiveSessionsForUser(userId: string): Promise<void>;
-  revokeActiveSessionsForUserExcept(userId: string, sessionId: string): Promise<void>;
+  revokeActiveSessionsForUserExcept(
+    userId: string,
+    sessionId: string,
+  ): Promise<void>;
 }

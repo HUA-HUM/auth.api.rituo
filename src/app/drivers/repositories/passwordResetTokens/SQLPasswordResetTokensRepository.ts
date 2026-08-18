@@ -17,15 +17,15 @@ interface PasswordResetTokenRow {
 }
 
 @Injectable()
-export class SQLPasswordResetTokensRepository
-  implements IPasswordResetTokensRepository
-{
+export class SQLPasswordResetTokensRepository implements IPasswordResetTokensRepository {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
   ) {}
 
-  async create(data: CreatePasswordResetTokenData): Promise<PasswordResetToken> {
+  async create(
+    data: CreatePasswordResetTokenData,
+  ): Promise<PasswordResetToken> {
     const rows = await this.queryRows<PasswordResetTokenRow>(
       `
         insert into password_reset_tokens (

@@ -17,9 +17,7 @@ interface EmailPasswordCredentialRow {
 }
 
 @Injectable()
-export class SQLEmailPasswordCredentialsRepository
-  implements IEmailPasswordCredentialsRepository
-{
+export class SQLEmailPasswordCredentialsRepository implements IEmailPasswordCredentialsRepository {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,

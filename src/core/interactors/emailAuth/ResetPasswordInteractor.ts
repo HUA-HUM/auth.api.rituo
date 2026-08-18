@@ -41,7 +41,9 @@ export class ResetPasswordInteractor {
     );
 
     if (!resetToken) {
-      throw new UnauthorizedException('Invalid or expired password reset token');
+      throw new UnauthorizedException(
+        'Invalid or expired password reset token',
+      );
     }
 
     const credential =

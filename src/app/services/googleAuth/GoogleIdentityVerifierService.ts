@@ -28,7 +28,9 @@ export class GoogleIdentityVerifier implements IGoogleIdentityVerifier {
         email: typeof payload.email === 'string' ? payload.email : null,
         emailVerified: payload.email_verified === true,
         displayName:
-          typeof payload.name === 'string' ? this.normalizeName(payload.name) : null,
+          typeof payload.name === 'string'
+            ? this.normalizeName(payload.name)
+            : null,
       };
     } catch {
       throw new UnauthorizedException('Invalid Google identity token');

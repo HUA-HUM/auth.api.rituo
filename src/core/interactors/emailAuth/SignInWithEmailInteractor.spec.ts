@@ -48,7 +48,7 @@ describe('SignInWithEmailInteractor client metadata', () => {
       credentialsRepository as never,
       refreshSessionsRepository as never,
       tokenService as never,
-      tokenHasher as never,
+      tokenHasher,
     );
 
     return { interactor, refreshSessionsRepository, tokenService };

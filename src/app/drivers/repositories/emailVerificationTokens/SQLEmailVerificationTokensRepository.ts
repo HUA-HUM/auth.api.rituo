@@ -17,9 +17,7 @@ interface EmailVerificationTokenRow {
 }
 
 @Injectable()
-export class SQLEmailVerificationTokensRepository
-  implements IEmailVerificationTokensRepository
-{
+export class SQLEmailVerificationTokensRepository implements IEmailVerificationTokensRepository {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,

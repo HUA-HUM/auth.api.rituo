@@ -163,10 +163,10 @@ export class SQLUsersRepository implements IUsersRepository {
         [userId],
       );
 
-      const tagRows = (await manager.query(
+      const tagRows = await manager.query(
         'select tag_id as "tagId" from nfc_tag_claims where user_id = $1',
         [userId],
-      )) as Array<{ tagId: string }>;
+      );
 
       await manager.query('delete from nfc_tag_claims where user_id = $1', [
         userId,
@@ -201,9 +201,10 @@ export class SQLUsersRepository implements IUsersRepository {
         'delete from email_password_credentials where user_id = $1',
         [userId],
       );
-      await manager.query('delete from password_reset_tokens where user_id = $1', [
-        userId,
-      ]);
+      await manager.query(
+        'delete from password_reset_tokens where user_id = $1',
+        [userId],
+      );
       await manager.query(
         'delete from email_verification_tokens where user_id = $1',
         [userId],
@@ -219,10 +220,10 @@ export class SQLUsersRepository implements IUsersRepository {
         );
       }
 
-      const deletedRows = (await manager.query(
+      const deletedRows = await manager.query(
         'delete from users where id = $1 returning id',
         [userId],
-      )) as Array<{ id: string }>;
+      );
 
       return deletedRows.length > 0;
     });

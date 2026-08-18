@@ -6,6 +6,7 @@ import { AppleAuthModule } from './appleAuth/AppleAuthModule';
 import { GoogleAuthModule } from './googleAuth/GoogleAuthModule';
 import { EmailAuthModule } from './emailAuth/EmailAuthModule';
 import { JwtAuthModule } from './jwtAuth/JwtAuthModule';
+import { AdminAuthModule } from './adminAuth/AdminAuthModule';
 import { HealthModule } from './health.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { HealthModule } from './health.module';
     GoogleAuthModule,
     EmailAuthModule,
     JwtAuthModule,
+    AdminAuthModule,
     HealthModule,
   ],
   controllers: [AppController],

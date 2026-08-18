@@ -7,12 +7,14 @@ import { REFRESH_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories
 import { EMAIL_PASSWORD_CREDENTIALS_REPOSITORY } from '../../../core/adapters/repositories/emailPasswordCredentials/IEmailPasswordCredentialsRepository';
 import { EMAIL_VERIFICATION_TOKENS_REPOSITORY } from '../../../core/adapters/repositories/emailVerificationTokens/IEmailVerificationTokensRepository';
 import { PASSWORD_RESET_TOKENS_REPOSITORY } from '../../../core/adapters/repositories/passwordResetTokens/IPasswordResetTokensRepository';
+import { ADMIN_USERS_REPOSITORY } from '../../../core/adapters/repositories/adminUsers/IAdminUsersRepository';
 import { SQLUsersRepository } from '../../drivers/repositories/users/SQLUsersRepository';
 import { SQLAuthIdentitiesRepository } from '../../drivers/repositories/authIdentities/SQLAuthIdentitiesRepository';
 import { SQLRefreshSessionsRepository } from '../../drivers/repositories/refreshSessions/SQLRefreshSessionsRepository';
 import { SQLEmailPasswordCredentialsRepository } from '../../drivers/repositories/emailPasswordCredentials/SQLEmailPasswordCredentialsRepository';
 import { SQLEmailVerificationTokensRepository } from '../../drivers/repositories/emailVerificationTokens/SQLEmailVerificationTokensRepository';
 import { SQLPasswordResetTokensRepository } from '../../drivers/repositories/passwordResetTokens/SQLPasswordResetTokensRepository';
+import { SQLAdminUsersRepository } from '../../drivers/repositories/adminUsers/SQLAdminUsersRepository';
 
 @Global()
 @Module({
@@ -49,6 +51,10 @@ import { SQLPasswordResetTokensRepository } from '../../drivers/repositories/pas
       provide: EMAIL_VERIFICATION_TOKENS_REPOSITORY,
       useClass: SQLEmailVerificationTokensRepository,
     },
+    {
+      provide: ADMIN_USERS_REPOSITORY,
+      useClass: SQLAdminUsersRepository,
+    },
   ],
   exports: [
     USERS_REPOSITORY,
@@ -57,6 +63,7 @@ import { SQLPasswordResetTokensRepository } from '../../drivers/repositories/pas
     EMAIL_PASSWORD_CREDENTIALS_REPOSITORY,
     PASSWORD_RESET_TOKENS_REPOSITORY,
     EMAIL_VERIFICATION_TOKENS_REPOSITORY,
+    ADMIN_USERS_REPOSITORY,
   ],
 })
 export class DatabaseModule {}

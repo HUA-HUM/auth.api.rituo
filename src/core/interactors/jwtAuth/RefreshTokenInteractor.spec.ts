@@ -52,7 +52,7 @@ describe('RefreshTokenInteractor client metadata', () => {
       usersRepository as never,
       refreshSessionsRepository as never,
       tokenService as never,
-      tokenHasher as never,
+      tokenHasher,
     );
 
     await interactor.execute('old-refresh-token');

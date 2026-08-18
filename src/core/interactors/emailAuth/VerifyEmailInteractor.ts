@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { EMAIL_VERIFICATION_TOKENS_REPOSITORY } from '../../adapters/repositories/emailVerificationTokens/IEmailVerificationTokensRepository';
 import type { IEmailVerificationTokensRepository } from '../../adapters/repositories/emailVerificationTokens/IEmailVerificationTokensRepository';
