@@ -1,5 +1,19 @@
 import { BadRequestException } from '@nestjs/common';
 import { RegisterWithEmailInteractor } from './RegisterWithEmailInteractor';
+import { CreateUserData, User } from '../../entities/users/User';
+
+function createdUserFrom(data: CreateUserData): User {
+  return {
+    id: 'user-id',
+    email: data.email,
+    displayName: data.displayName,
+    dateOfBirth: data.dateOfBirth ?? null,
+    emailVerified: data.emailVerified,
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
 
 describe('RegisterWithEmailInteractor', () => {
   const usersRepository = {
@@ -23,6 +37,9 @@ describe('RegisterWithEmailInteractor', () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-08T12:00:00.000Z'));
     jest.clearAllMocks();
     usersRepository.findByEmail.mockResolvedValue(null);
+    usersRepository.create.mockImplementation((data: CreateUserData) =>
+      Promise.resolve(createdUserFrom(data)),
+    );
     credentialsRepository.findByEmail.mockResolvedValue(null);
     tokenHasher.hash.mockResolvedValue('password-hash');
     credentialsRepository.create.mockResolvedValue(undefined);
@@ -34,17 +51,6 @@ describe('RegisterWithEmailInteractor', () => {
   });
 
   it('registers a user who turns 16 today and requires email verification', async () => {
-    usersRepository.create.mockImplementation(async (data) => ({
-      id: 'user-id',
-      email: data.email,
-      displayName: data.displayName,
-      dateOfBirth: data.dateOfBirth,
-      emailVerified: data.emailVerified,
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
-
     const result = await interactor.execute({
       email: 'person@example.com',
       firstName: 'Rituo',
@@ -64,6 +70,47 @@ describe('RegisterWithEmailInteractor', () => {
       email: 'person@example.com',
     });
     expect(result.emailVerificationRequired).toBe(true);
+  });
+
+  it.each([
+    ['omitted', undefined],
+    ['null', null],
+  ])(
+    'registers a user whose dateOfBirth is %s',
+    async (_label, dateOfBirth) => {
+      const result = await interactor.execute({
+        email: 'noboh@example.com',
+        firstName: 'Rituo',
+        lastName: 'User',
+        dateOfBirth,
+        password: 'password123',
+        deviceId: 'iphone-id',
+      });
+
+      expect(usersRepository.create).toHaveBeenCalledWith({
+        email: 'noboh@example.com',
+        displayName: 'Rituo User',
+        dateOfBirth: null,
+        emailVerified: false,
+      });
+      expect(result.user.dateOfBirth).toBeNull();
+      expect(result.emailVerificationRequired).toBe(true);
+    },
+  );
+
+  it('still rejects a malformed dateOfBirth when the client sends one', async () => {
+    await expect(
+      interactor.execute({
+        email: 'malformed@example.com',
+        firstName: 'Rituo',
+        lastName: 'User',
+        dateOfBirth: '08/08/1990',
+        password: 'password123',
+        deviceId: 'iphone-id',
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(usersRepository.create).not.toHaveBeenCalled();
   });
 
   it('blocks a user who turns 16 tomorrow before creating any data', async () => {

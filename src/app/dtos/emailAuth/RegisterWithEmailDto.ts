@@ -28,13 +28,16 @@ export class RegisterWithEmailDto {
   @MaxLength(80)
   lastName: string;
 
-  @ApiProperty({
-    description: 'Birth date in ISO calendar-date format.',
+  @ApiPropertyOptional({
+    description:
+      'Optional birth date in ISO calendar-date format. May be omitted or sent as null.',
     example: '1990-08-08',
+    nullable: true,
   })
+  @IsOptional()
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  dateOfBirth: string;
+  dateOfBirth?: string | null;
 
   @ApiProperty({ minLength: 8, maxLength: 72 })
   @IsString()

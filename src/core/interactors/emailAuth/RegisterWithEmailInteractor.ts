@@ -23,7 +23,7 @@ export interface RegisterWithEmailCommand {
   email: string;
   firstName: string;
   lastName: string;
-  dateOfBirth: string;
+  dateOfBirth?: string | null;
   password: string;
   deviceId: string;
   deviceLabel?: string | null;
@@ -61,7 +61,7 @@ export class RegisterWithEmailInteractor {
       command.firstName,
       command.lastName,
     );
-    const dateOfBirth = this.validateDateOfBirth(command.dateOfBirth);
+    const dateOfBirth = this.normalizeDateOfBirth(command.dateOfBirth);
     this.validatePassword(command.password);
     const platform = normalizeClientPlatform(command.platform);
 
@@ -150,7 +150,16 @@ export class RegisterWithEmailInteractor {
     }
   }
 
-  private validateDateOfBirth(value: string): string {
+  /**
+   * dateOfBirth is optional: App Review (guideline 5.1.1(v)) rejected making it
+   * mandatory at signup, so an account can be created without it. When the
+   * client does send it we still validate the calendar date and the 16+ rule.
+   */
+  private normalizeDateOfBirth(value?: string | null): string | null {
+    if (value === undefined || value === null || value.trim() === '') {
+      return null;
+    }
+
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
     if (!match) {
