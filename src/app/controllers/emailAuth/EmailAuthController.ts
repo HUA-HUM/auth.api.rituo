@@ -46,7 +46,7 @@ export class EmailAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     description:
-      'Creates an email/password account for a user who is at least 16 years old and sends an email verification link.',
+      'Creates an email/password account and sends an email verification link. dateOfBirth is optional; when it is sent, the user must be at least 16 years old.',
   })
   @ApiConflictResponse({ description: 'Email is already registered.' })
   async register(
